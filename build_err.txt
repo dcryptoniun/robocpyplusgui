@@ -1,0 +1,13 @@
+   Compiling robocpyplusgui v0.1.0 (D:\Work\Windows\robocpyplusgui)
+error[E0382]: use of moved value: `ui_weak_hotkey`
+  --> src\main.rs:30:59
+   |
+30 |                     let _ = slint::invoke_from_event_loop(move || {
+   |                                                           ^^^^^^^ value moved into closure here, in previous iteration of loop
+31 |                         if let Some(ui) = ui_weak_hotkey.upgrade() {
+   |                                           -------------- use occurs due to use in closure
+   |
+   = note: move occurs because `ui_weak_hotkey` has type `slint::Weak<MainWindow>`, which does not implement the `Copy` trait
+
+For more information about this error, try `rustc --explain E0382`.
+error: could not compile `robocpyplusgui` (bin "robocpyplusgui") due to 1 previous error

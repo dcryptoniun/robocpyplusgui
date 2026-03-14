@@ -1,0 +1,315 @@
+import { Button, VerticalBox, LineEdit, TextEdit, CheckBox, HorizontalBox, ProgressIndicator, Spinner, ComboBox, SpinBox, ScrollView } from "std-widgets.slint";
+
+export component ProgressWindow inherits Window {
+    title: "Robocopy+ Progress Tracker";
+    icon: @image-url("../assets/icon.png");
+    min-width: 500px;
+    min-height: 450px;
+    background: #1e1e1e;
+    default-font-family: "Segoe UI Variable";
+
+    in property <string> robocopy_progress: "Ready";
+    in property <float> progress_value: 0.0;
+    
+    // New Total Progress Properties
+    in property <string> total_progress_text: "Total: 0/0";
+    in property <float> total_progress_value: 0.0;
+    
+    in property <string> log_text: "";
+    in property <bool> is_running: false;
+    property <bool> logs_expanded: false;
+
+    callback force_stop();
+
+    ScrollView {
+        VerticalBox {
+            padding: 24px;
+            spacing: 16px;
+
+            // Action Buttons
+            HorizontalBox {
+                alignment: end;
+                if is_running : Button {
+                    text: "Force Stop";
+                    primary: false;
+                    width: 120px;
+                    height: 36px;
+                    clicked => { force_stop(); }
+                }
+                
+                Button {
+                    text: is_running ? "Running..." : "Finished";
+                    enabled: false;
+                    primary: true;
+                    width: 120px;
+                    height: 36px;
+                }
+            }
+
+            // Card: Status & Logs
+            Rectangle {
+                background: #2d2d30;
+                border-radius: 8px;
+                vertical-stretch: 1;
+
+                VerticalBox {
+                    padding: 16px;
+                    spacing: 12px;
+                    HorizontalBox {
+                        Text {
+                            text: "Status: " + robocopy_progress;
+                            color: #ececec;
+                            font-weight: 600;
+                            vertical-alignment: center;
+                        }
+                        if is_running : Spinner {
+                            width: 16px;
+                            height: 16px;
+                            indeterminate: true;
+                        }
+                        HorizontalBox { alignment: stretch; } // Spacer
+                        Button {
+                            text: logs_expanded ? "Hide Logs" : "Show Logs";
+                            clicked => { logs_expanded = !logs_expanded; }
+                        }
+                    }
+                    
+                    if (is_running || progress_value > 0.0) : VerticalBox {
+                        spacing: 4px;
+                        HorizontalBox {
+                            Text { text: "Current File:"; font-size: 11px; color: #a0a0a0; }
+                            ProgressIndicator {
+                                progress: progress_value;
+                                height: 8px;
+                            }
+                        }
+                        HorizontalBox {
+                            Text { text: total_progress_text; font-size: 11px; color: #a0a0a0; width: 80px; }
+                            ProgressIndicator {
+                                progress: total_progress_value;
+                                height: 8px;
+                            }
+                        }
+                    }
+                    
+                    if logs_expanded : Rectangle {
+                        background: #1e1e1e;
+                        border-radius: 4px;
+                        clip: true;
+                        // Provide a default scrolling area for the text edit
+                        min-height: 100px;
+                        
+                        TextEdit {
+                            text: log_text;
+                            read-only: true;
+                            font-size: 12px;
+                            font-family: "Consolas";
+                            wrap: word-wrap;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+export component MainWindow inherits Window {
+    title: "Robocopy+";
+    icon: @image-url("../assets/icon.png");
+    preferred-width: 650px;
+    preferred-height: 500px;
+    min-width: 650px;
+    min-height: 500px;
+    background: #1e1e1e;
+    default-font-family: "Segoe UI Variable";
+
+    property <bool> advanced_expanded: false;
+    property <int> thread_count: 8;
+    property <string> file_filter: "*.*";
+    property <int> retry_count: 3;
+    property <int> wait_time: 1;
+    property <bool> copy_empty_dirs: true;
+    property <bool> restartable_mode: true;
+
+    // We pass: source, dest, mode ("Copy", "Mirror", "Move"), filter, threads, retries, wait_time, copy_empty, restartable
+    callback start_copy(string, string, string, string, int, int, int, bool, bool);
+    
+    // New Callbacks
+    callback save_settings(string, string, string, string, int, int, int, bool, bool);
+    callback load_settings();
+    
+    // Event to receive loaded settings
+    callback update_settings(string, string, string, string, int, int, int, bool, bool);
+    
+    update_settings(src, dst, mode, filter, th, ret, w, e, r) => {
+        source_input.text = src;
+        dest_input.text = dst;
+        action_combo.current-value = mode;
+        file_filter = filter;
+        thread_count = th;
+        retry_count = ret;
+        wait_time = w;
+        copy_empty_dirs = e;
+        restartable_mode = r;
+    }
+
+    ScrollView {
+        VerticalBox {
+            padding: 24px;
+            spacing: 16px;
+
+        // Header Title & Settings Buttons
+        HorizontalBox {
+            VerticalBox {
+                Text {
+                    text: "Robocopy+";
+                    font-size: 24px;
+                    font-weight: 700;
+                    color: #ffffff;
+                }
+                Text {
+                    text: "Modern, minimal wrapper for Windows Robocopy";
+                    font-size: 14px;
+                    color: #a0a0a0;
+                }
+            }
+            HorizontalBox { alignment: stretch; } // Spacer
+            VerticalBox {
+                alignment: center;
+
+                settings_btn := Button {
+                    text: "Settings ▾";
+                    clicked => { settings_popup.show(); }
+                }
+
+                settings_popup := PopupWindow {
+                    x: settings_btn.width - self.width;
+                    y: settings_btn.height + 4px;
+                    Rectangle {
+                        background: #2d2d30;
+                        border-radius: 4px;
+                        border-width: 1px;
+                        border-color: #3e3e42;
+                        
+                        VerticalBox {
+                            padding: 8px;
+                            spacing: 4px;
+                            Button {
+                                text: "Load Settings";
+                                clicked => { load_settings(); }
+                            }
+                            Button {
+                                text: "Save Settings";
+                                clicked => {
+                                    save_settings(source_input.text, dest_input.text, action_combo.current-value, file_filter, thread_count, retry_count, wait_time, copy_empty_dirs, restartable_mode);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Card: Paths
+        Rectangle {
+            background: #2d2d30;
+            border-radius: 8px;
+            
+            VerticalBox {
+                padding: 16px;
+                spacing: 12px;
+                HorizontalBox {
+                    Text { text: "Source"; vertical-alignment: center; color: #ececec; width: 60px; font-weight: 600; }
+                    source_input := LineEdit { placeholder-text: "C:\\path\\to\\source"; }
+                }
+                HorizontalBox {
+                    Text { text: "Dest"; vertical-alignment: center; color: #ececec; width: 60px; font-weight: 600; }
+                    dest_input := LineEdit { placeholder-text: "D:\\path\\to\\dest"; }
+                }
+            }
+        }
+        
+        // Card: Options
+        Rectangle {
+            background: #2d2d30;
+            border-radius: 8px;
+
+            VerticalBox {
+                padding: 16px;
+                spacing: 12px;
+                
+                HorizontalBox {
+                    Text { text: "Action:"; vertical-alignment: center; color: #ececec; font-weight: 600; }
+                    action_combo := ComboBox {
+                        model: ["Copy (Standard)", "Mirror (Sync)", "Move (Cut)"];
+                        current-value: "Copy (Standard)";
+                        width: 200px;
+                    }
+                    
+                    if action_combo.current-value == "Mirror (Sync)" : Text {
+                        text: "(Warning: Deletes extra files in destination)";
+                        color: #ff6b6b;
+                        font-size: 11px;
+                        vertical-alignment: center;
+                    }
+                }
+
+                HorizontalBox {
+                    Button {
+                        text: advanced_expanded ? "Hide Advanced Options" : "Show Advanced Options";
+                        clicked => { advanced_expanded = !advanced_expanded; }
+                    }
+                    HorizontalBox { alignment: stretch; }
+                }
+
+                if advanced_expanded : Rectangle {
+                    background: #3a3a3d;
+                    border-radius: 4px;
+                    VerticalBox {
+                        padding: 12px;
+                        spacing: 8px;
+                        HorizontalBox {
+                            Text { text: "File Filter:"; vertical-alignment: center; color: #ececec; }
+                            filter_input := LineEdit { text <=> file_filter; width: 100px; }
+                            HorizontalBox { alignment: stretch; }
+                        }
+                        HorizontalBox {
+                            Text { text: "Thread Count (/MT):"; vertical-alignment: center; color: #ececec; }
+                            threads_input := SpinBox {
+                                value <=> thread_count;
+                                minimum: 1;
+                                maximum: 128;
+                            }
+                        }
+                        HorizontalBox {
+                            Text { text: "Retries (/R):"; vertical-alignment: center; color: #ececec; }
+                            retries_input := SpinBox { value <=> retry_count; minimum: 0; maximum: 99; }
+                            Text { text: "Wait (/W):"; vertical-alignment: center; color: #ececec; }
+                            wait_input := SpinBox { value <=> wait_time; minimum: 0; maximum: 99; }
+                        }
+                        HorizontalBox {
+                            empty_dirs_toggle := CheckBox { text: "Copy Empty Subdirs (/E)"; checked <=> copy_empty_dirs; }
+                            restartable_toggle := CheckBox { text: "Restartable Mode (/Z)"; checked <=> restartable_mode; }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Action Buttons
+        HorizontalBox {
+            alignment: end;
+            Button {
+                text: "Start Concurrent Copy";
+                enabled: source_input.text != "" && dest_input.text != "";
+                primary: true;
+                width: 180px;
+                height: 36px;
+                clicked => {
+                    start_copy(source_input.text, dest_input.text, action_combo.current-value, file_filter, thread_count, retry_count, wait_time, copy_empty_dirs, restartable_mode);
+                }
+            }
+        }
+    }
+}
+}

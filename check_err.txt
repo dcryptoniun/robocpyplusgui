@@ -1,0 +1,15 @@
+   Compiling robocpyplusgui v0.1.0 (D:\Work\Windows\robocpyplusgui)
+error: failed to run custom build command for `robocpyplusgui v0.1.0 (D:\Work\Windows\robocpyplusgui)`
+
+Caused by:
+  process didn't exit successfully: `D:\Work\Windows\robocpyplusgui\target\debug\build\robocpyplusgui-fc6deffa4f16eaa8\build-script-build` (exit code: 101)
+  --- stderr
+  error: Syntax error: expected '}'
+   --> D:\Work\Windows\robocpyplusgui\ui\main.slint:1:1
+    |
+  1 | import { Button, VerticalBox, LineEdit, TextEdit, CheckBox, HorizontalBox, ProgressIndicator, Spinner, ComboBox, SpinBox, ScrollView ...
+    | ^
+
+  thread 'main' (16916) panicked at build.rs:2:43:
+  called `Result::unwrap()` on an `Err` value: CompileError(["D:\\Work\\Windows\\robocpyplusgui\\ui\\main.slint:1: Syntax error: expected '}'"])
+  note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

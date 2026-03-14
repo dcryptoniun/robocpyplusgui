@@ -1,0 +1,43 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*' # Trigger on tags that start with v (e.g., v0.1.0-beta.1)
+
+jobs:
+  release:
+    name: Build & Publish Release
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Build Portable EXE
+        run: cargo build --release
+
+      - name: Prepare Release Artifacts
+        run: |
+          mkdir release_artifacts
+          copy target\release\robocpyplusgui.exe release_artifacts\Robocopy+.exe
+          Compress-Archive -Path release_artifacts\* -DestinationPath RobocopyPlus_Portable.zip
+
+      - name: Build Inno Setup Installer (.exe)
+        run: iscc installer.iss
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            RobocopyPlus_Portable.zip
+            Output/RobocopyPlus_Setup.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
