@@ -1,7 +1,8 @@
 [Setup]
 AppName=Robocopy+
-AppVersion=0.1.0-beta.1
+AppVersion=0.1.0-beta.5
 AppPublisher=dcryptoniun
+SetupIconFile=assets\icon.ico
 DefaultDirName={autopf}\Robocopy+
 DefaultGroupName=Robocopy+
 OutputDir=Output

@@ -179,27 +179,32 @@ export component MainWindow inherits Window {
                 }
                 // Version + update status row
                 HorizontalBox {
-                    spacing: 8px;
+                    spacing: 6px;
+                    alignment: start;
                     Text {
                         text: app_version;
-                        font-size: 11px;
-                        color: #6e9ef5;
+                        font-size: 12px;
+                        color: #5b9cf6;
                         vertical-alignment: center;
                     }
-                    if update_status != "" : Rectangle {
-                        background: update_available ? #3d2a00 : #1a3320;
-                        border-radius: 4px;
-                        height: 18px;
-                        HorizontalBox {
-                            padding-left: 6px;
-                            padding-right: 6px;
-                            Text {
-                                text: update_status;
-                                font-size: 10px;
-                                color: update_available ? #ffb347 : #5dde82;
-                                vertical-alignment: center;
-                            }
-                        }
+                    if update_status != "" : Text {
+                        text: "·";
+                        font-size: 12px;
+                        color: #555555;
+                        vertical-alignment: center;
+                    }
+                    if update_status != "" && !update_available : Text {
+                        text: update_status;
+                        font-size: 12px;
+                        color: #4caf82;
+                        vertical-alignment: center;
+                    }
+                    if update_available : Text {
+                        text: update_status;
+                        font-size: 12px;
+                        font-weight: 600;
+                        color: #f5a623;
+                        vertical-alignment: center;
                     }
                 }
             }
