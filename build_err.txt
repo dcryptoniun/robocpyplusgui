@@ -1,13 +1,50 @@
-   Compiling robocpyplusgui v0.1.0 (D:\Work\Windows\robocpyplusgui)
-error[E0382]: use of moved value: `ui_weak_hotkey`
-  --> src\main.rs:30:59
-   |
-30 |                     let _ = slint::invoke_from_event_loop(move || {
-   |                                                           ^^^^^^^ value moved into closure here, in previous iteration of loop
-31 |                         if let Some(ui) = ui_weak_hotkey.upgrade() {
-   |                                           -------------- use occurs due to use in closure
-   |
-   = note: move occurs because `ui_weak_hotkey` has type `slint::Weak<MainWindow>`, which does not implement the `Copy` trait
+warning: robocpyplusgui@0.1.0-beta.3: warning: padding-left only has effect on layout elements
+warning: robocpyplusgui@0.1.0-beta.3:    --> D:\Work\Windows\robocpyplusgui\ui\main.slint:192:39
+warning: robocpyplusgui@0.1.0-beta.3:     |
+warning: robocpyplusgui@0.1.0-beta.3: 192 |                         padding-left: 6px;
+warning: robocpyplusgui@0.1.0-beta.3:     |                                       ^^^^
+warning: robocpyplusgui@0.1.0-beta.3:     |
+warning: robocpyplusgui@0.1.0-beta.3: warning: padding-right only has effect on layout elements
+warning: robocpyplusgui@0.1.0-beta.3:    --> D:\Work\Windows\robocpyplusgui\ui\main.slint:193:40
+warning: robocpyplusgui@0.1.0-beta.3:     |
+warning: robocpyplusgui@0.1.0-beta.3: 193 |                         padding-right: 6px;
+warning: robocpyplusgui@0.1.0-beta.3:     |                                        ^^^^
+   Compiling robocpyplusgui v0.1.0-beta.3 (D:\Work\Windows\robocpyplusgui)
+warning: unused import: `PathBuf`
+ --> src\config.rs:3:23
+  |
+3 | use std::path::{Path, PathBuf};
+  |                       ^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
 
-For more information about this error, try `rustc --explain E0382`.
-error: could not compile `robocpyplusgui` (bin "robocpyplusgui") due to 1 previous error
+warning: unused import: `RwLock`
+  --> src\main.rs:15:22
+   |
+15 | use std::sync::{Arc, RwLock, mpsc};
+   |                      ^^^^^^
+
+warning: unused variable: `ui_weak`
+  --> src\main.rs:28:9
+   |
+28 |     let ui_weak = ui.as_weak();
+   |         ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_ui_weak`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `ui_weak_save`
+   --> src\main.rs:106:9
+    |
+106 |     let ui_weak_save = ui.as_weak();
+    |         ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_ui_weak_save`
+
+warning: function `remove_context_menu` is never used
+  --> src\windows_integration.rs:25:8
+   |
+25 | pub fn remove_context_menu() -> std::io::Result<()> {
+   |        ^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `robocpyplusgui` (bin "robocpyplusgui") generated 5 warnings (run `cargo fix --bin "robocpyplusgui" -p robocpyplusgui` to apply 4 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 30.93s

@@ -15,6 +15,9 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, RwLock, mpsc};
 use std::thread;
 
+/// Current app version — kept in sync with Cargo.toml
+const APP_VERSION: &str = concat!("v", env!("CARGO_PKG_VERSION"));
+
 slint::include_modules!();
 
 fn main() -> Result<(), slint::PlatformError> {
@@ -23,6 +26,55 @@ fn main() -> Result<(), slint::PlatformError> {
 
     let ui = MainWindow::new()?;
     let ui_weak = ui.as_weak();
+
+    // Set current version in UI immediately
+    ui.set_app_version(APP_VERSION.into());
+
+    // Background update check — polls GitHub API for the latest release
+    {
+        let ui_weak_update = ui.as_weak();
+        thread::spawn(move || {
+            // Give the UI time to render before making network call
+            thread::sleep(std::time::Duration::from_millis(500));
+
+            let result = ureq::get(
+                "https://api.github.com/repos/dcryptoniun/robocpyplusgui/releases/latest",
+            )
+            .header("User-Agent", "robocpyplusgui-update-checker")
+            .call();
+
+            match result {
+                Ok(mut response) => {
+                    let json_result = response
+                        .body_mut()
+                        .with_config()
+                        .limit(50_000)
+                        .read_json::<serde_json::Value>();
+                    if let Ok(json) = json_result {
+                        if let Some(tag) = json["tag_name"].as_str() {
+                            let latest = tag.to_string();
+                            let current = APP_VERSION.to_string();
+                            let is_newer = latest != current && latest > current;
+                            let status = if is_newer {
+                                format!("Update available: {}", latest)
+                            } else {
+                                "Up to date ✓".to_string()
+                            };
+                            let _ = slint::invoke_from_event_loop(move || {
+                                if let Some(ui) = ui_weak_update.upgrade() {
+                                    ui.set_update_status(status.into());
+                                    ui.set_update_available(is_newer);
+                                }
+                            });
+                        }
+                    }
+                }
+                Err(_) => {
+                    // Silently ignore network errors — offline users shouldn't see errors
+                }
+            }
+        });
+    }
 
     // Setup global hotkeys using `global-hotkey` crate: Ctrl + Shift + R
     let manager = GlobalHotKeyManager::new().unwrap();

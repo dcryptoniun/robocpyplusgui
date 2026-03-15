@@ -131,6 +131,11 @@ export component MainWindow inherits Window {
     property <bool> copy_empty_dirs: true;
     property <bool> restartable_mode: true;
 
+    // Version & Update checker
+    in property <string> app_version: "v0.1.0-beta.1";
+    in property <string> update_status: ""; // e.g. "" | "Up to date" | "Update available: v0.2.0"
+    in property <bool> update_available: false;
+
     // We pass: source, dest, mode ("Copy", "Mirror", "Move"), filter, threads, retries, wait_time, copy_empty, restartable
     callback start_copy(string, string, string, string, int, int, int, bool, bool);
     
@@ -171,6 +176,31 @@ export component MainWindow inherits Window {
                     text: "Modern, minimal wrapper for Windows Robocopy";
                     font-size: 14px;
                     color: #a0a0a0;
+                }
+                // Version + update status row
+                HorizontalBox {
+                    spacing: 8px;
+                    Text {
+                        text: app_version;
+                        font-size: 11px;
+                        color: #6e9ef5;
+                        vertical-alignment: center;
+                    }
+                    if update_status != "" : Rectangle {
+                        background: update_available ? #3d2a00 : #1a3320;
+                        border-radius: 4px;
+                        height: 18px;
+                        HorizontalBox {
+                            padding-left: 6px;
+                            padding-right: 6px;
+                            Text {
+                                text: update_status;
+                                font-size: 10px;
+                                color: update_available ? #ffb347 : #5dde82;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
                 }
             }
             HorizontalBox { alignment: stretch; } // Spacer
